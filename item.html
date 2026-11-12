@@ -12,19 +12,29 @@
 </head>
 <body data-page="item">
 <!-- DIVI: Theme Builder > Single product template (one layout for every product).
-     Breadcrumb = Woo Breadcrumb · Gallery = Woo Gallery/Images · Title = Woo Title · Price = Woo Price
-     Buy box = Woo Add To Cart (hidden automatically when out of stock) + Button to /contact/
-     Sold panel = Text module shown only for out-of-stock products · Details/Description = Woo Description
-     Related = Woo Related Products. -->
+     Row 1: Woo Breadcrumb.
+     Row 2 (2 columns, ~64/36): left = Woo Images/Gallery (main image + 4 thumbnails, lightbox on click);
+       right = Text (category label) · Woo Title · Text (status pill: in stock / sold) · Woo Price ·
+       Woo Short Description (summary line) · Button "Read full description" (anchor) · Woo Add To Cart
+       (hidden automatically when out of stock) · 3 × Text boxes (Dimensions, Condition, Collection & delivery).
+     Row 3: Toggle module "Full description" containing Woo Description.
+     Row 4: "More from the collection" = 3 × Image + Text linking to product categories. -->
 <main id="main" tabindex="-1">
   <div class="wrap" id="item"></div>
-  <section class="section" style="padding-top:0" aria-labelledby="related-title">
+  <section class="section more-collection" aria-labelledby="more-title">
     <div class="wrap">
-      <div class="section-head"><h2 id="related-title">More finds</h2><span class="rule" aria-hidden="true"></span><a class="text-link more" id="related-more" href="collection.html">See the collection</a></div>
-      <ul class="cards" id="related"></ul>
+      <div class="section-head"><h2 id="more-title">More from the collection</h2><span class="rule" aria-hidden="true"></span></div>
+      <ul class="tiles cols-3" id="more-tiles"></ul>
     </div>
   </section>
 </main>
+<dialog class="lightbox" id="lightbox" aria-labelledby="lb-title">
+  <h2 class="visually-hidden" id="lb-title">Photos</h2>
+  <figure><img id="lb-img" alt=""><figcaption id="lb-count"></figcaption></figure>
+  <button class="lb-btn lb-prev" type="button" id="lb-prev" aria-label="Previous photo">&#8592;</button>
+  <button class="lb-btn lb-next" type="button" id="lb-next" aria-label="Next photo">&#8594;</button>
+  <button class="lb-btn lb-close" type="button" id="lb-close" aria-label="Close photos">&#215;</button>
+</dialog>
 <script src="data/catalogue.js"></script>
 <script src="assets/site.js"></script>
 </body>

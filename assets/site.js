@@ -102,53 +102,102 @@
     document.getElementById("c-count").textContent = list.length + " sample item" + (list.length === 1 ? "" : "s") + " shown";
   };
 
+  function absUrl(u) { return new URL(u, location.href).href; }
   pages.item = function () {
     var p = byId[param("id")] || byId[C.demo_items.available];
     var sold = isSold(p), cat = primaryCat(p), root = document.getElementById("item");
     document.title = p.name + " – Vintage Pine Etc. (preview)";
     document.body.classList.add(sold ? "outofstock" : "instock");
-    var n = p.images.length;
-    /* Strip a leading "Size." / "Approximate size." label, since the row is already labelled. */
+    var n = p.images.length, current = 0;
+    /* Strip a leading "Size." / "Approximate size." label, since the box is already labelled. */
     var size = p.size.map(function (s) { s = s.replace(/^(approximate\s+)?sizes?\.?\s*/i, ""); return s.charAt(0).toUpperCase() + s.slice(1); });
-    var details = [["Era", p.era], ["Size", size], ["Condition", p.condition]].filter(function (d) { return d[1] && d[1].length; });
+    var summaryIsEra = p.era.length && p.summary === p.era[0];
+    var boxes = [];
+    if (size.length) boxes.push(["Dimensions", size]);
+    if (p.era.length && !summaryIsEra) boxes.push(["Age", p.era]);
+    if (p.condition.length) boxes.push(["Condition", p.condition]);
+    boxes.push(["Collection &amp; delivery", ["Viewing by appointment in Bexleyheath, DA7. Free local delivery on large items."]]);
+    var mag = '<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>';
 
-    var buy = sold
-      ? '<div class="sold-panel" role="status"><p class="big">Sold</p><p>This piece has found a new home. <span class="price-was">It was listed at ' + money(p.price) + ".</span></p>" +
-        '<a class="btn btn-primary" href="' + collectionUrl(cat.slug) + '">Browse more ' + esc(cat.label.toLowerCase()) + "</a>" +
-        '<a class="btn btn-secondary" href="index.html#latest">See latest finds</a>' +
-        '<p class="help" style="margin:14px 0 0">Looking for something similar? <a class="text-link" href="contact.html">Get in touch</a> – stock changes often.</p></div>'
-      : '<div class="buy"><button class="btn btn-primary" type="button" id="add-to-basket">Add to basket</button>' +
-        '<a class="btn btn-secondary" href="contact.html?about=' + p.id + '">Ask a question or arrange a viewing</a>' +
-        '<small>' + esc(C.shop.viewing) + ". Viewing and collection: Bexleyheath, DA7.</small>" +
-        '<div class="demo-notice" id="basket-msg" role="status" aria-live="polite" hidden></div></div>';
+    /* Up to 4 thumbnails, as in the mockup; the 4th opens the full set when there are more. */
+    var shown = Math.min(n, 4);
+    var thumbs = n > 1 ? '<ul class="thumbs">' + p.images.slice(0, shown).map(function (im, i) {
+      var more = (i === 3 && n > 4);
+      return '<li><button type="button" data-i="' + i + '"' + (more ? ' data-more="1" aria-label="View all ' + n + ' photos"' : ' aria-label="Show photo ' + (i + 1) + " of " + n + '"') + (i === 0 ? ' aria-current="true"' : "") + '><img src="' + esc(im.src) + '" alt="" loading="lazy" width="200" height="200">' + (more ? '<span class="more-count" aria-hidden="true">+' + (n - 3) + "</span>" : "") + "</button></li>";
+    }).join("") + "</ul>" : "";
+
+    var action = sold
+      ? '<div class="sold-note" role="status"><p>This piece has been sold. <span class="price-was">It was listed at ' + money(p.price).replace(/\.00$/, "") + ".</span></p></div>" +
+        '<a class="btn btn-primary btn-block" href="' + collectionUrl(cat.slug) + '">Browse more ' + esc(cat.label.toLowerCase()) + "</a>" +
+        '<p class="sub-action">Looking for something similar? <a class="text-link" href="contact.html">Get in touch</a></p>'
+      : '<button class="btn btn-primary btn-block" type="button" id="add-to-basket">Add to basket</button>' +
+        '<p class="sub-action">or <a class="text-link" href="contact.html?about=' + p.id + '">enquire about this piece</a> and arrange a viewing</p>' +
+        '<div class="demo-notice" id="basket-msg" role="status" aria-live="polite" hidden></div>';
 
     root.innerHTML =
       '<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="index.html">Home</a></li><li><a href="' + collectionUrl(cat.slug) + '">' + esc(cat.label) + '</a></li><li aria-current="page">' + esc(p.name) + "</li></ol></nav>" +
       '<div class="item"><section class="gallery" aria-label="Photos">' +
-        '<div class="main"><img id="main-photo" src="' + esc(p.images[0].src) + '" alt="' + esc(p.images[0].alt) + '" width="1200" height="900">' + (sold ? '<span class="badge-sold" aria-hidden="true">Sold</span>' : "") + "</div>" +
-        (n > 1 ? '<ul class="thumbs">' + p.images.map(function (im, i) {
-          return '<li><button type="button" data-i="' + i + '" aria-label="Show photo ' + (i + 1) + " of " + n + '"' + (i === 0 ? ' aria-current="true"' : "") + '><img src="' + esc(im.src) + '" alt="" loading="lazy" width="120" height="120"></button></li>';
-        }).join("") + "</ul>" : "") +
-        '<p class="count" id="photo-count">' + (n > 1 ? "Photo 1 of " + n : "") + "</p></section>" +
-      '<div class="summary"><p class="cat"><a href="' + collectionUrl(cat.slug) + '">' + esc(cat.label) + "</a></p>" +
-        "<h1>" + esc(p.name) + "</h1>" +
-        (sold ? "" : '<p class="price">' + money(p.price) + '</p><p class="status">Available</p>') +
-        buy +
-        (details.length ? '<dl class="details">' + details.map(function (d) { return "<div><dt>" + d[0] + "</dt><dd>" + d[1].map(esc).join("<br>") + "</dd></div>"; }).join("") + "</dl>" : "") +
-        (p.description.length ? '<div class="description">' + p.description.map(function (t) { return "<p>" + esc(t) + "</p>"; }).join("") + "</div>" : "") +
-        '<p class="flag">Text, price and photos taken from the live listing (<a href="' + esc(p.source_permalink) + '" rel="noopener">view on current site</a>).</p>' +
-      "</div></div>";
+        '<div class="main" id="main-frame" style="--bg:url(\'' + esc(absUrl(p.images[0].src)) + '\')">' +
+          '<img id="main-photo" src="' + esc(p.images[0].src) + '" alt="' + esc(p.images[0].alt) + '" width="1200" height="900">' +
+          (sold ? '<span class="badge-sold" aria-hidden="true">Sold</span>' : "") +
+          '<p class="photo-count" id="photo-count" aria-live="polite">' + (n > 1 ? "Photo 1 of " + n : "") + "</p>" +
+          '<button class="view-larger" type="button" id="view-larger">' + mag + "View larger</button>" +
+        "</div>" + thumbs + "</section>" +
+      '<div class="summary">' +
+        '<p class="cat-line"><a href="' + collectionUrl(cat.slug) + '">' + esc(cat.label) + '</a><span class="rule" aria-hidden="true"></span></p>' +
+        "<h1" + (p.name.length > 40 ? ' class="is-long"' : "") + ">" + esc(p.name) + "</h1>" +
+        '<p class="pill ' + (sold ? "pill-sold" : "pill-available") + '">' + (sold ? "Sold" : "Available") + "</p>" +
+        (sold ? "" : '<p class="price">' + money(p.price).replace(/\.00$/, "") + "</p>") +
+        (p.summary ? '<p class="item-summary">' + esc(p.summary) + "</p>" : "") +
+        '<p class="read-more"><a href="#full-description" id="read-more">Read full description <span aria-hidden="true">↓</span></a></p>' +
+        action +
+        '<div class="info-boxes">' + boxes.map(function (b) { return '<div class="info-box"><h2>' + b[0] + "</h2><p>" + b[1].map(esc).join("<br>") + "</p></div>"; }).join("") + "</div>" +
+      "</div></div>" +
+      '<details class="full-desc" id="full-description"><summary><span class="fd-title">Full description</span><span class="fd-sub">About this piece, its details and character</span><span class="fd-icon" aria-hidden="true"></span></summary>' +
+        '<div class="fd-body">' + p.full_text.map(function (t) { return "<p>" + esc(t) + "</p>"; }).join("") +
+        '<p class="flag">Text, price and photos taken from the live listing (<a href="' + esc(p.source_permalink) + '" rel="noopener">view on current site</a>).</p></div></details>';
 
-    var main = document.getElementById("main-photo");
-    root.querySelectorAll(".thumbs button").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var i = +b.getAttribute("data-i");
-        main.src = p.images[i].src; main.alt = p.images[i].alt;
-        root.querySelectorAll(".thumbs button").forEach(function (x) { x.removeAttribute("aria-current"); });
-        b.setAttribute("aria-current", "true");
-        document.getElementById("photo-count").textContent = "Photo " + (i + 1) + " of " + n;
+    /* Gallery */
+    var main = document.getElementById("main-photo"), frame = document.getElementById("main-frame");
+    function fit() { frame.classList.toggle("is-portrait", main.naturalHeight > main.naturalWidth * 1.05); }
+    main.addEventListener("load", fit); if (main.complete) fit();
+    function show(i) {
+      current = i; main.src = p.images[i].src; main.alt = p.images[i].alt;
+      frame.style.setProperty("--bg", "url('" + absUrl(p.images[i].src) + "')");
+      root.querySelectorAll(".thumbs button").forEach(function (x) {
+        if (+x.getAttribute("data-i") === i && !x.hasAttribute("data-more")) x.setAttribute("aria-current", "true"); else x.removeAttribute("aria-current");
       });
+      if (n > 1) document.getElementById("photo-count").textContent = "Photo " + (i + 1) + " of " + n;
+    }
+    root.querySelectorAll(".thumbs button").forEach(function (b) {
+      b.addEventListener("click", function () { var i = +b.getAttribute("data-i"); if (b.hasAttribute("data-more")) openBox(i, b); else show(i); });
     });
+
+    /* Lightbox (production: Divi/WooCommerce built-in gallery lightbox) */
+    var box = document.getElementById("lightbox"), lbImg = document.getElementById("lb-img"), lbCount = document.getElementById("lb-count");
+    document.getElementById("lb-title").textContent = "Photos of " + p.name;
+    function lbShow(i) { current = (i + n) % n; lbImg.src = p.images[current].src; lbImg.alt = p.images[current].alt; lbCount.textContent = "Photo " + (current + 1) + " of " + n; }
+    function openBox(i) { lbShow(i); box.showModal(); document.getElementById(n > 1 ? "lb-next" : "lb-close").focus(); }
+    document.getElementById("view-larger").addEventListener("click", function () { openBox(current); });
+    main.addEventListener("click", function () { openBox(current); });
+    document.getElementById("lb-prev").addEventListener("click", function () { lbShow(current - 1); });
+    document.getElementById("lb-next").addEventListener("click", function () { lbShow(current + 1); });
+    document.getElementById("lb-close").addEventListener("click", function () { box.close(); });
+    box.addEventListener("click", function (e) { if (e.target === box) box.close(); });
+    box.addEventListener("keydown", function (e) { if (e.key === "ArrowRight") lbShow(current + 1); if (e.key === "ArrowLeft") lbShow(current - 1); });
+    box.addEventListener("close", function () { show(current); });
+    if (n < 2) { document.getElementById("lb-prev").hidden = true; document.getElementById("lb-next").hidden = true; }
+
+    /* "Read full description" opens and scrolls to the panel */
+    document.getElementById("read-more").addEventListener("click", function (e) {
+      e.preventDefault(); var d = document.getElementById("full-description"); d.open = true;
+      var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      d.querySelector("summary").focus({ preventScroll: true });
+      d.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+      /* Fallback for browsers that ignore smooth scrolling */
+      setTimeout(function () { if (d.getBoundingClientRect().top > window.innerHeight * 0.6) d.scrollIntoView({ block: "start" }); }, 700);
+    });
+
     var add = document.getElementById("add-to-basket");
     if (add) add.addEventListener("click", function () {
       var m = document.getElementById("basket-msg");
@@ -157,11 +206,18 @@
       add.textContent = "Added (demo only)"; add.setAttribute("aria-disabled", "true");
     });
 
-    var related = C.products.filter(function (x) { return x.id !== p.id && !isSold(x) && x.categories.indexOf(cat.slug) > -1; }).slice(0, 3);
-    if (related.length < 3) related = related.concat(latest(6, p.id).filter(function (x) { return related.indexOf(x) < 0; })).slice(0, 3);
-    document.getElementById("related-title").textContent = sold ? "Available now" : "More " + cat.label.toLowerCase();
-    document.getElementById("related-more").href = collectionUrl(cat.slug);
-    renderCards(related, document.getElementById("related"));
+    /* More from the collection: this item's category first, then two others */
+    var order = ["furniture", "vintage-enamel-signs", "vintage-tins", "architectural-industrial", "home-garden-leisure"];
+    var picks = [cat.slug].concat(order.filter(function (s) { return s !== cat.slug; })).filter(function (s) { return cats[s] && !cats[s].footer_only; }).slice(0, 3);
+    document.getElementById("more-tiles").innerHTML = picks.map(function (s) {
+      var c = cats[s], img = c.image;
+      /* Don't repeat the photo of the piece being viewed: use another listing from that category. */
+      if (img.indexOf("/" + p.id + "/") !== -1) {
+        var alt = C.products.filter(function (q) { return q.id !== p.id && !isSold(q) && q.categories.indexOf(s) !== -1 && q.images.length; })[0];
+        if (alt) img = alt.images[0].src;
+      }
+      return '<li class="tile"><a href="' + collectionUrl(s) + '"><div class="img"><img src="' + esc(img) + '" alt="" loading="lazy" width="400" height="300"></div><span>Browse ' + esc(c.label.toLowerCase()) + "</span></a></li>";
+    }).join("");
   };
 
   pages.sell = function () {
