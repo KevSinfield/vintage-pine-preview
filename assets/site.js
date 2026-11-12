@@ -15,6 +15,13 @@
   function collectionUrl(slug) { return "collection.html?c=" + encodeURIComponent(slug); }
   function primaryCat(p) { return cats[p.categories.filter(function (s) { return s !== "sold-items"; })[0] || p.categories[0]]; }
   function param(k) { return new URLSearchParams(location.search).get(k); }
+  /* Illustrative category artwork (supplied crops, used as-is). Real listing photos stay on cards and item pages.
+     Production: a fixed Image module per category tile in Divi. */
+  var CATEGORY_ART = { "furniture": "furniture", "vintage-enamel-signs": "advertising-signs", "vintage-tins": "vintage-tins",
+    "architectural-industrial": "industrial-pub", "home-garden-leisure": "home-garden" };
+  function categoryTile(c, label, cls) {
+    return '<li class="tile' + (cls || "") + '"><a href="' + collectionUrl(c.slug) + '"><div class="img"><img src="assets/categories/' + CATEGORY_ART[c.slug] + '.png" alt="" loading="lazy" width="191" height="188"></div><span>' + esc(label) + "</span></a></li>";
+  }
 
   /* Latest finds = newest products that are in stock (WooCommerce: orderby=date, stock_status=instock). */
   function latest(n, excludeId) {
@@ -31,7 +38,7 @@
     return '<li class="card' + (sold ? " is-sold" : "") + '"><a class="card-link" href="' + itemUrl(p) + '">' +
       '<div class="img"><img src="' + esc(img.src) + '" alt="" loading="lazy" width="600" height="450">' +
       (sold ? '<span class="badge-sold">Sold</span>' : "") + "</div>" +
-      "<h" + h + ">" + esc(p.name) + "</h" + h + ">" +
+      "<h" + h + ">" + esc(p.card_title || p.name) + "</h" + h + ">" +
       '<p class="price">' + (sold ? '<span class="visually-hidden">Sold. </span>' : "") + money(p.price) + "</p>" +
       '<span class="view" aria-hidden="true">' + (sold ? "See sold item" : "View item") + "</span></a></li>";
   }
@@ -83,9 +90,7 @@
 
   pages.home = function () {
     var tiles = document.getElementById("collection-tiles");
-    tiles.innerHTML = C.categories.filter(function (c) { return !c.footer_only; }).map(function (c) {
-      return '<li class="tile"><a href="' + collectionUrl(c.slug) + '"><div class="img"><img src="' + c.image + '" alt="" loading="lazy" width="400" height="400"></div><span>' + esc(c.label) + "</span></a></li>";
-    }).join("");
+    tiles.innerHTML = Object.keys(CATEGORY_ART).map(function (slug) { return categoryTile(cats[slug], cats[slug].label); }).join("");
     renderCards(latest(6), document.getElementById("latest-finds"));
     renderCards(inCategory("sold-items").filter(isSold).slice(0, 3), document.getElementById("recently-sold"));
   };
@@ -96,13 +101,11 @@
     document.title = c.label + " – Vintage Pine Etc. (preview)";
     document.getElementById("c-title").textContent = c.label;
     document.getElementById("c-crumb").textContent = c.label;
-    document.getElementById("c-live").textContent = c.live_count + " listings (available and sold) in “" + c.live_name + "” on the live site";
     var list = inCategory(slug);
     renderCards(list, document.getElementById("c-items"), 2);
-    document.getElementById("c-count").textContent = list.length + " sample item" + (list.length === 1 ? "" : "s") + " shown";
+    document.getElementById("c-count").textContent = list.length + " item" + (list.length === 1 ? "" : "s");
   };
 
-  function absUrl(u) { return new URL(u, location.href).href; }
   pages.item = function () {
     var p = byId[param("id")] || byId[C.demo_items.available];
     var sold = isSold(p), cat = primaryCat(p), root = document.getElementById("item");
@@ -130,16 +133,16 @@
       ? '<div class="sold-note" role="status"><p>This piece has been sold. <span class="price-was">It was listed at ' + money(p.price).replace(/\.00$/, "") + ".</span></p></div>" +
         '<a class="btn btn-primary btn-block" href="' + collectionUrl(cat.slug) + '">Browse more ' + esc(cat.label.toLowerCase()) + "</a>" +
         '<p class="sub-action">Looking for something similar? <a class="text-link" href="contact.html">Get in touch</a></p>'
-      : '<button class="btn btn-primary btn-block" type="button" id="add-to-basket">Add to basket</button>' +
+      : '<button class="btn btn-primary btn-block" type="button" id="add-to-basket" aria-describedby="checkout-off">Add to basket</button>' +
+        '<p class="checkout-off" id="checkout-off">Demo only: checkout is switched off in this preview.</p>' +
         '<p class="sub-action">or <a class="text-link" href="contact.html?about=' + p.id + '">enquire about this piece</a> and arrange a viewing</p>' +
         '<div class="demo-notice" id="basket-msg" role="status" aria-live="polite" hidden></div>';
 
     root.innerHTML =
       '<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="index.html">Home</a></li><li><a href="' + collectionUrl(cat.slug) + '">' + esc(cat.label) + '</a></li><li aria-current="page">' + esc(p.name) + "</li></ol></nav>" +
       '<div class="item"><section class="gallery" aria-label="Photos">' +
-        '<div class="main" id="main-frame" style="--bg:url(\'' + esc(absUrl(p.images[0].src)) + '\')">' +
+        '<div class="main" id="main-frame">' +
           '<img id="main-photo" src="' + esc(p.images[0].src) + '" alt="' + esc(p.images[0].alt) + '" width="1200" height="900">' +
-          (sold ? '<span class="badge-sold" aria-hidden="true">Sold</span>' : "") +
           '<p class="photo-count" id="photo-count" aria-live="polite">' + (n > 1 ? "Photo 1 of " + n : "") + "</p>" +
           '<button class="view-larger" type="button" id="view-larger">' + mag + "View larger</button>" +
         "</div>" + thumbs + "</section>" +
@@ -163,7 +166,6 @@
     main.addEventListener("load", fit); if (main.complete) fit();
     function show(i) {
       current = i; main.src = p.images[i].src; main.alt = p.images[i].alt;
-      frame.style.setProperty("--bg", "url('" + absUrl(p.images[i].src) + "')");
       root.querySelectorAll(".thumbs button").forEach(function (x) {
         if (+x.getAttribute("data-i") === i && !x.hasAttribute("data-more")) x.setAttribute("aria-current", "true"); else x.removeAttribute("aria-current");
       });
@@ -209,15 +211,8 @@
     /* More from the collection: this item's category first, then two others */
     var order = ["furniture", "vintage-enamel-signs", "vintage-tins", "architectural-industrial", "home-garden-leisure"];
     var picks = [cat.slug].concat(order.filter(function (s) { return s !== cat.slug; })).filter(function (s) { return cats[s] && !cats[s].footer_only; }).slice(0, 3);
-    document.getElementById("more-tiles").innerHTML = picks.map(function (s) {
-      var c = cats[s], img = c.image;
-      /* Don't repeat the photo of the piece being viewed: use another listing from that category. */
-      if (img.indexOf("/" + p.id + "/") !== -1) {
-        var alt = C.products.filter(function (q) { return q.id !== p.id && !isSold(q) && q.categories.indexOf(s) !== -1 && q.images.length; })[0];
-        if (alt) img = alt.images[0].src;
-      }
-      return '<li class="tile"><a href="' + collectionUrl(s) + '"><div class="img"><img src="' + esc(img) + '" alt="" loading="lazy" width="400" height="300"></div><span>Browse ' + esc(c.label.toLowerCase()) + "</span></a></li>";
-    }).join("");
+    /* Same illustrative category artwork as the homepage tiles, as in the product-page mockup */
+    document.getElementById("more-tiles").innerHTML = picks.map(function (s) { return categoryTile(cats[s], "Browse " + cats[s].label.toLowerCase()); }).join("");
   };
 
   pages.sell = function () {

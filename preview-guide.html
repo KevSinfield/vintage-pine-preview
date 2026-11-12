@@ -24,7 +24,7 @@
     </ul>
     <h2 style="font-size:24px;margin-top:28px">Simplified stand-ins (outside the demo scope)</h2>
     <ul>
-      <li>Collection pages (for example <a href="collection.html?c=furniture">Furniture</a>) show only the sample items, so the links work.</li>
+      <li>Collection pages (for example <a href="collection.html?c=furniture">Furniture</a>) show only the sample items, so the links work. See <a href="#collections">About the collection pages</a>.</li>
       <li><a href="contact.html">Contact</a> uses the live page’s wording with an optional form added.</li>
       <li>Basket, checkout, account, search and pagination are not built.</li>
     </ul>
@@ -33,6 +33,16 @@
       <li>“Add to basket” shows a demo message. Nothing is added, ordered or paid for.</li>
       <li>The Sell and Contact forms do not send anything. Selected photos stay in the browser.</li>
       <li>All listings come from one sample data file (<code>data/catalogue.json</code>): 15 real listings copied from the public shop on 12 Nov 2026, with their own text, prices and photos.</li>
+    </ul>
+    <h2 id="collections" style="font-size:24px;margin-top:28px">About the collection pages</h2>
+    <p>Each collection page is a simple stand-in so the menu and category links work. It lists only the items in the preview’s sample data, not the full category. In production it is the WooCommerce product category archive, built as a Divi Theme Builder “Product category” template, which keeps the shop’s existing pagination and Sold badges.</p>
+    <p>Card titles on listings are shortened for display (for example “Puritan Soap enamel sign”). The full product name stays on the item page; in WooCommerce that would be a short display title or simply the product name, the client’s choice.</p>
+    <p>Live category sizes, for comparison:</p>
+    <ul><li>Furniture: 15 listings on the live site, available and sold (category “Furniture”).</li><li>Advertising signs: 89 listings on the live site, available and sold (category “Enamel/tin/other advertising signs/showcards”).</li><li>Vintage tins: 5 listings on the live site, available and sold (category “Vintage tins”).</li><li>Brewery, pub & industrial: 22 listings on the live site, available and sold (category “Brewery/Pub/Industrial”).</li><li>Home, garden & leisure: 31 listings on the live site, available and sold (category “Home, Garden, leisure”).</li><li>Sold items: 44 listings on the live site, available and sold (category “Sold items”).</li></ul>
+    <h2 style="font-size:24px;margin-top:28px">Illustrative images</h2>
+    <ul>
+      <li>The homepage hero and the five “Browse the collection” category images are illustrative artwork from the design mockups. They are not items for sale.</li>
+      <li>Everything in Latest finds, Recently sold, the collection pages and the item pages uses the real listing photos, prices and stock status.</li>
     </ul>
   </div>
 </main>
