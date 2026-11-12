@@ -55,7 +55,8 @@ p { margin: 0 0 1em; }
 .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 62px; }
 .site-header .wrap::after { content: ""; position: absolute; left: var(--gutter); right: var(--gutter); bottom: 0; height: 1px; background: var(--rule-fine); opacity: .7; }
 .site-header .wrap { position: relative; }
-.logo { font: 600 clamp(26px, 3.1vw, 38px)/1 var(--serif); color: var(--olive); text-decoration: none; letter-spacing: -.015em; white-space: nowrap; }
+.logo { display: block; flex: none; line-height: 0; text-decoration: none; }
+.logo img { display: block; height: clamp(30px, 3.2vw, 40px); width: auto; }
 .nav-toggle { display: none; }
 .main-nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; }
 .main-nav li + li::before { content: "·"; color: var(--rule); margin: 0 10px; }
@@ -160,7 +161,7 @@ p { margin: 0 0 1em; }
 /* Footer (Divi Theme Builder: Global Footer) */
 .site-footer { border-top: 1px solid var(--rule); padding: 28px 0 40px; }
 .site-footer .wrap { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
-.site-footer .logo { font-size: 28px; }
+.site-footer .logo img { height: 30px; }
 .site-footer nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 0; }
 .site-footer nav li + li::before { content: "·"; color: var(--rule); margin: 0 9px; }
 .site-footer nav a { font-size: 13.5px; text-decoration: none; }

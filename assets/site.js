@@ -60,13 +60,13 @@
     var strip = '<div class="preview-strip" role="note"><div class="wrap"><span><strong>Redesign preview.</strong> Not the official shop<span class="ps-long">; visit <a href="https://www.vintagepineetc.co.uk/" rel="noopener">vintagepineetc.co.uk</a> to buy. Checkout, payments and enquiries are switched off here</span>.</span><span class="ps-links"><a class="ps-short" href="https://www.vintagepineetc.co.uk/" rel="noopener">Official shop</a><a href="preview-guide.html"><span class="ps-long">What’s in this preview</span><span class="ps-short">About</span></a></span></div></div>';
     var nav = NAV.map(function (n) { return '<li><a href="' + n.href + '"' + (n.key === cur ? ' aria-current="page"' : "") + ">" + n.label + "</a></li>"; }).join("");
     return strip + '<header class="site-header"><div class="wrap">' +
-      '<a class="logo" href="index.html">Vintage Pine Etc.</a>' +
+      '<a class="logo" href="index.html"><img src="assets/brand/vintage-pine-logo.svg?v=20261112d" alt="Vintage Pine Etc." width="432" height="72"></a>' +
       '<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav"><span class="bars" aria-hidden="true"></span>Menu</button>' +
       '<nav class="main-nav" id="main-nav" aria-label="Main"><ul>' + nav + "</ul></nav></div></header>";
   }
   function footer() {
     var links = NAV.slice(0, 5).concat([{ href: "sell.html", label: "Something to sell?" }, { href: "contact.html", label: "Contact" }, { href: collectionUrl("sold-items"), label: "Sold items" }]);
-    return '<footer class="site-footer"><div class="wrap"><a class="logo" href="index.html">Vintage Pine Etc.</a>' +
+    return '<footer class="site-footer"><div class="wrap"><a class="logo" href="index.html"><img src="assets/brand/vintage-pine-logo.svg?v=20261112d" alt="Vintage Pine Etc." width="432" height="72"></a>' +
       '<nav aria-label="Footer"><ul>' + links.map(function (n) { return '<li><a href="' + n.href + '">' + n.label + "</a></li>"; }).join("") + "</ul></nav>" +
       '<p class="legal">Copyright © 2026 Vintage Pine Etc. Ltd ® · ' + esc(C.shop.address.join(", ")) + "</p></div></footer>";
   }
