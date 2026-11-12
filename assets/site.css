@@ -133,12 +133,16 @@ p { margin: 0 0 1em; }
 .card.is-sold .price { color: var(--muted); }
 
 /* Story split (Divi: Section, Row 1/2 + 1/2, Image + Text) */
-.story { display: grid; grid-template-columns: 1fr 1fr; background: var(--paper); }
-.story img { width: 100%; height: 100%; min-height: 320px; max-height: 520px; object-fit: cover; }
-.story .copy { padding: clamp(28px, 4.2vw, 60px) clamp(24px, 5vw, 72px); align-self: center; max-width: 640px; }
+/* Story: the photo fills the left half edge to edge (as in the mockup); copy vertically centred on the right */
+.story { background: var(--paper); }
+.story-inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
+.story-media { margin: 0; position: relative; min-width: 0; min-height: clamp(300px, 27vw, 440px); overflow: hidden; }
+.story-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 0% 50%; display: block; }
+.story-credit { position: absolute; right: 14px; bottom: 10px; margin: 0; font: italic 400 13px/1.2 var(--serif); color: #fffaf0; text-shadow: 0 1px 3px rgba(0, 0, 0, .6); }
+.story .copy { align-self: center; max-width: 36em; padding: clamp(28px, 4vw, 56px) clamp(24px, 5vw, 72px); }
 .story h2 .line { display: block; }
-.story h2 { font-size: clamp(30px, 3.6vw, 44px); }
-.story .copy p { font-size: 17.5px; }
+.story h2 { font-size: clamp(30px, 3.4vw, 42px); margin-bottom: .4em; }
+.story .copy p { font-size: 17.5px; margin: 0 0 .85em; }
 .flag { font: italic 400 13px/1.4 var(--serif); color: var(--muted); }
 
 /* Visit / buying info */
@@ -294,8 +298,9 @@ address { font-style: normal; }
   .hero-media img { height: auto; aspect-ratio: 632 / 421;
     -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 9%);
             mask-image: linear-gradient(180deg, transparent 0%, #000 9%); }
-  .story { grid-template-columns: 1fr; }
-  .story img { min-height: 0; aspect-ratio: 4 / 3; }
+  .story-inner { grid-template-columns: minmax(0, 1fr); }
+  .story-media { min-height: 0; aspect-ratio: 509 / 229; }
+  .story .copy { padding: 24px 16px 32px; max-width: none; }
   .item { grid-template-columns: minmax(0, 1fr); gap: 22px; }
   .tiles.cols-3 { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 72%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; }
   .tiles.cols-3 .tile { scroll-snap-align: start; }
