@@ -254,3 +254,70 @@
     if (pages[page]) pages[page]();
   });
 })();
+
+/* ---------- Visit alerts (preview only; must not go onto the live shop) ----------
+   A short, anonymous note to Kev's phone via ntfy.sh when the published preview is opened or used,
+   as on the Bensons and Legal Comfort previews. It sends only the page, the ?from= link tag (if any),
+   the device type and browser, and the screen width. No cookies, no visitor IDs, nothing typed into
+   a form, and we don't log IP addresses. It runs only on the GitHub Pages copy, not on localhost.
+   Visit any page with ?me once to stop your own device sending alerts (?me=0 to undo). */
+(function () {
+  "use strict";
+  var TOPIC = "https://ntfy.sh/vpe-preview-ay4jiqjtb8";
+  function store(kind, k, v) { try { var s = window[kind]; if (v === undefined) return s.getItem(k); if (v === null) s.removeItem(k); else s.setItem(k, v); } catch (e) { return null; } }
+  var q = new URLSearchParams(location.search);
+  if (q.has("me")) store("localStorage", "vpe-me", q.get("me") === "0" ? null : "1");
+  var off = store("localStorage", "vpe-me") === "1" || location.hostname !== "kevsinfield.github.io";
+  var tag = (q.get("from") || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 20);
+  if (tag) store("sessionStorage", "vpe-from", tag); else tag = store("sessionStorage", "vpe-from") || "";
+
+  function device() {
+    var u = navigator.userAgent;
+    var d = /iPhone/.test(u) ? "iPhone" : /iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1) ? "iPad"
+      : /Android/.test(u) ? "Android" : /Macintosh/.test(u) ? "Mac" : /Windows/.test(u) ? "Windows PC" : "Other device";
+    var b = /Edg\//.test(u) ? "Edge" : /CriOS|Chrome\//.test(u) ? "Chrome" : /FxiOS|Firefox\//.test(u) ? "Firefox" : /Safari\//.test(u) ? "Safari" : "";
+    return d + (b ? " (" + b + ")" : "") + ", " + screen.width + "px screen";
+  }
+  function page() {
+    var t = document.title.split(" – ")[0].replace(/ \(preview\)$/, "");
+    return document.body.getAttribute("data-page") === "home" ? "Homepage" : t;
+  }
+  function send(title, tagIcon) {
+    if (off) return;
+    var msg = page() + " · " + device() + (tag ? " · from: " + tag : "");
+    try {
+      fetch(TOPIC + "?title=" + encodeURIComponent(title) + "&tags=" + (tagIcon || "eyes"),
+        { method: "POST", body: msg, keepalive: true, mode: "cors" }).catch(function () {});
+    } catch (e) {}
+  }
+
+  /* Runs after the page has rendered (registered after the main DOMContentLoaded handler) */
+  document.addEventListener("DOMContentLoaded", function () {
+    var key = "vpe-seen-" + location.pathname + location.search.replace(/[?&](me|from)=[^&]*/g, "");
+    if (store("sessionStorage", key) !== "1") {
+      store("sessionStorage", key, "1");
+      var ref = "";
+      try { if (document.referrer && new URL(document.referrer).hostname !== location.hostname) ref = " (came from " + new URL(document.referrer).hostname + ")"; } catch (e) {}
+      send("Preview opened: " + page() + ref, "eyes");
+    }
+  });
+
+  /* Key actions, once each per page view */
+  var done = {};
+  function once(k, title, icon) { if (done[k]) return; done[k] = 1; send(title, icon); }
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest ? e.target : null; if (!t) return;
+    var el;
+    if (t.closest("#add-to-basket")) once("basket", "Tapped Add to basket (demo)", "shopping_cart");
+    else if ((el = t.closest('a[href^="contact.html?about"]'))) once("enquire", "Tapped Enquire about this piece", "speech_balloon");
+    else if (t.closest("#view-larger, #main-photo, .thumbs button[data-more]")) once("photos", "Opened the photo viewer", "frame_with_picture");
+    else if (t.closest("#read-more, #full-description > summary")) once("desc", "Opened the full description", "page_facing_up");
+    else if ((el = t.closest(".tile a"))) once("tile-" + el.getAttribute("href"), "Tapped category: " + el.textContent.trim(), "point_right");
+    else if ((el = t.closest('a[href^="https://www.vintagepineetc.co.uk"]'))) once("live", "Followed a link to the live shop", "link");
+  });
+  document.addEventListener("submit", function (e) {
+    var id = e.target && e.target.id;
+    if (id === "sell-form") once("sell", "Submitted the Something to sell? form (demo; nothing sent)", "package");
+    if (id === "contact-form") once("contact", "Submitted the contact form (demo; nothing sent)", "email");
+  });
+})();
