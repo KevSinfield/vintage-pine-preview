@@ -50,7 +50,7 @@
 
   function header() {
     var cur = currentKey();
-    var strip = '<div class="preview-strip" role="note"><div class="wrap"><span><strong>Redesign preview.</strong> Not the official shop; visit <a href="https://www.vintagepineetc.co.uk/" rel="noopener">vintagepineetc.co.uk</a> to buy. Checkout, payments and enquiries are switched off here.</span><a href="preview-guide.html">What’s in this preview</a></div></div>';
+    var strip = '<div class="preview-strip" role="note"><div class="wrap"><span><strong>Redesign preview.</strong> Not the official shop<span class="ps-long">; visit <a href="https://www.vintagepineetc.co.uk/" rel="noopener">vintagepineetc.co.uk</a> to buy. Checkout, payments and enquiries are switched off here</span>.</span><span class="ps-links"><a class="ps-short" href="https://www.vintagepineetc.co.uk/" rel="noopener">Official shop</a><a href="preview-guide.html"><span class="ps-long">What’s in this preview</span><span class="ps-short">About</span></a></span></div></div>';
     var nav = NAV.map(function (n) { return '<li><a href="' + n.href + '"' + (n.key === cur ? ' aria-current="page"' : "") + ">" + n.label + "</a></li>"; }).join("");
     return strip + '<header class="site-header"><div class="wrap">' +
       '<a class="logo" href="index.html">Vintage Pine Etc.</a>' +
